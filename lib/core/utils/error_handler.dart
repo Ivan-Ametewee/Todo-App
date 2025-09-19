@@ -31,9 +31,9 @@ class ErrorHandler {
   }
 
   static void logError(String operation, dynamic error, [StackTrace? stackTrace]) {
-    print('Error in $operation: $error');
+    //print('Error in $operation: $error');
     if (stackTrace != null) {
-      print('Stack trace: $stackTrace');
+      //print('Stack trace: $stackTrace');
     }
   }
 }

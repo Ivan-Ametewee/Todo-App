@@ -6,29 +6,29 @@ import 'data/local/database_helper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize services with error handling
   try {
     // Test database initialization
     final dbHelper = DatabaseHelper();
     await dbHelper.database;
-    print('Database initialized successfully');
+    // print('Database initialized successfully');
   } catch (e) {
-    print('Database initialization failed: $e');
+    // print('Database initialization failed: $e');
   }
-  
+
   try {
     await NotificationService().initialize();
-    print('Notification service initialized successfully');
+    // print('Notification service initialized successfully');
   } catch (e) {
-    print('Failed to initialize notification service: $e');
+    // print('Failed to initialize notification service: $e');
   }
-  
+
   runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {

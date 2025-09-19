@@ -6,7 +6,7 @@ import '../../state/task_store.dart';
 import 'add_edit_task_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -74,414 +74,429 @@ class HomeScreen extends ConsumerWidget {
 
   Widget _buildTaskCard(BuildContext context, WidgetRef ref, Task task) {
     return Dismissible(
-      key: Key('task_${task.id}'),
-      direction: DismissDirection.endToStart,
-      background: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        decoration: BoxDecoration(
-          color: Colors.red,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        child: const Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.delete_outline,
-              color: Colors.white,
-              size: 28,
-            ),
-            SizedBox(height: 4),
-            Text(
-              'Delete',
-              style: TextStyle(
+        key: Key('task_${task.id}'),
+        direction: DismissDirection.endToStart,
+        background: Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: Colors.red,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          alignment: Alignment.centerRight,
+          padding: const EdgeInsets.only(right: 20),
+          child: const Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.delete_outline,
                 color: Colors.white,
-                fontWeight: FontWeight.w500,
+                size: 28,
               ),
-            ),
-          ],
-        ),
-      ),
-      confirmDismiss: (direction) async {
-        // Show the same confirmation dialog
-        return await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Delete Task'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Are you sure you want to delete this task?'),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        task.name,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      if (task.description.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          task.description,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'This action cannot be undone.',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.red,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('Delete'),
-              ),
-            ],
-          ),
-        );
-      },
-      onDismissed: (direction) async {
-        // Delete the task
-        if (task.id != null) {
-          final success = await ref.read(taskProvider.notifier).deleteTask(task.id!);
-          
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Row(
-                  children: [
-                    Icon(
-                      success ? Icons.check_circle : Icons.error,
-                      color: Colors.white,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(success 
-                          ? 'Task "${task.name}" deleted' 
-                          : 'Failed to delete task'),
-                    ),
-                  ],
-                ),
-                backgroundColor: success ? Colors.green : Colors.red,
-                duration: const Duration(seconds: 2),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-          }
-        }
-      },
-      child: Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(16),
-        leading: GestureDetector(
-          onTap: () async {
-            // Toggle task completion with loading state
-            if (task.id != null) {
-              final scaffoldMessenger = ScaffoldMessenger.of(context);
-              
-              try {
-                bool success;
-                if (task.isDone) {
-                  // Unmark as done
-                  final updatedTask = task.copyWith(isDone: false);
-                  success = await ref.read(taskProvider.notifier).updateTask(updatedTask);
-                } else {
-                  // Mark as done
-                  success = await ref.read(taskProvider.notifier).markAsDone(task.id!);
-                }
-
-                if (success) {
-                  scaffoldMessenger.showSnackBar(
-                    SnackBar(
-                      content: Text(task.isDone 
-                          ? 'Task marked as incomplete' 
-                          : 'Task completed! 🎉'),
-                      backgroundColor: task.isDone ? Colors.orange : Colors.green,
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
-                } else {
-                  scaffoldMessenger.showSnackBar(
-                    const SnackBar(
-                      content: Text('Failed to update task status'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              } catch (e) {
-                scaffoldMessenger.showSnackBar(
-                  const SnackBar(
-                    content: Text('Error updating task status'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              }
-            }
-          },
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            width: 24,
-            height: 24,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: task.isDone ? Colors.green : Colors.transparent,
-              border: Border.all(
-                color: task.isDone ? Colors.green : Colors.grey[400]!,
-                width: 2,
-              ),
-            ),
-            child: task.isDone
-                ? const Icon(
-                    Icons.check,
-                    color: Colors.white,
-                    size: 16,
-                  )
-                : null,
-          ),
-        ),
-        title: Text(
-          task.name,
-          style: TextStyle(
-            decoration: task.isDone ? TextDecoration.lineThrough : null,
-            fontWeight: FontWeight.w500,
-            color: task.isDone ? Colors.grey[600] : null,
-          ),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (task.description.isNotEmpty) ...[
-              const SizedBox(height: 4),
+              SizedBox(height: 4),
               Text(
-                task.description,
+                'Delete',
                 style: TextStyle(
-                  color: task.isDone ? Colors.grey[500] : Colors.grey[700],
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: _getTagColor(task.tag).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: _getTagColor(task.tag).withOpacity(0.3),
+          ),
+        ),
+        confirmDismiss: (direction) async {
+          // Show the same confirmation dialog
+          return await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Delete Task'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Are you sure you want to delete this task?'),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          task.name,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        if (task.description.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            task.description,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ],
                     ),
                   ),
-                  child: Text(
-                    task.tag.displayName,
+                  const SizedBox(height: 8),
+                  const Text(
+                    'This action cannot be undone.',
                     style: TextStyle(
                       fontSize: 12,
-                      color: _getTagColor(task.tag),
-                      fontWeight: FontWeight.w500,
+                      color: Colors.red,
+                      fontStyle: FontStyle.italic,
                     ),
-                  ),
-                ),
-                const Spacer(),
-                Icon(
-                  Icons.schedule,
-                  size: 16,
-                  color: Colors.grey[600],
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  _formatDeadline(task.deadline),
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-        trailing: IconButton(
-          icon: Icon(
-            Icons.delete_outline,
-            color: task.isDone ? Colors.grey[400] : Colors.grey[600],
-          ),
-          onPressed: () async {
-            // Show confirmation dialog for delete
-            final shouldDelete = await showDialog<bool>(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: const Text('Delete Task'),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Are you sure you want to delete this task?'),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[100],
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            task.name,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          if (task.description.isNotEmpty) ...[
-                            const SizedBox(height: 4),
-                            Text(
-                              task.description,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[600],
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'This action cannot be undone.',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.red,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ],
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(false),
-                    child: const Text('Cancel'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () => Navigator.of(context).pop(true),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
-                    ),
-                    child: const Text('Delete'),
                   ),
                 ],
               ),
-            );
-
-            if (shouldDelete == true && task.id != null) {
-              // Show loading while deleting
-              showDialog(
-                context: context,
-                barrierDismissible: false,
-                builder: (context) => const Center(
-                  child: CircularProgressIndicator(),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('Cancel'),
                 ),
-              );
-
-              try {
-                final success = await ref.read(taskProvider.notifier).deleteTask(task.id!);
-                
-                // Hide loading dialog
-                if (context.mounted) Navigator.of(context).pop();
-                
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Row(
-                        children: [
-                          Icon(
-                            success ? Icons.check_circle : Icons.error,
-                            color: Colors.white,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(success 
-                                ? 'Task "${task.name}" deleted successfully' 
-                                : 'Failed to delete task. Please try again.'),
-                          ),
-                        ],
-                      ),
-                      backgroundColor: success ? Colors.green : Colors.red,
-                      duration: const Duration(seconds: 3),
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
-                }
-              } catch (e) {
-                // Hide loading dialog
-                if (context.mounted) Navigator.of(context).pop();
-                
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Row(
-                        children: [
-                          Icon(Icons.error, color: Colors.white),
-                          SizedBox(width: 8),
-                          Expanded(
-                            child: Text('An error occurred while deleting the task'),
-                          ),
-                        ],
-                      ),
-                      backgroundColor: Colors.red,
-                      duration: Duration(seconds: 3),
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
-                }
-              }
-            }
-          },
-        ),
-        onTap: () {
-          // Navigate to edit task screen
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => AddEditTaskScreen(task: task),
+                ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text('Delete'),
+                ),
+              ],
             ),
           );
         },
-      ),
-    ));
+        onDismissed: (direction) async {
+          // Delete the task
+          if (task.id != null) {
+            final success =
+                await ref.read(taskProvider.notifier).deleteTask(task.id!);
+
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Row(
+                    children: [
+                      Icon(
+                        success ? Icons.check_circle : Icons.error,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(success
+                            ? 'Task "${task.name}" deleted'
+                            : 'Failed to delete task'),
+                      ),
+                    ],
+                  ),
+                  backgroundColor: success ? Colors.green : Colors.red,
+                  duration: const Duration(seconds: 2),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            }
+          }
+        },
+        child: Card(
+          margin: const EdgeInsets.only(bottom: 12),
+          child: ListTile(
+            contentPadding: const EdgeInsets.all(16),
+            leading: GestureDetector(
+              onTap: () async {
+                // Toggle task completion with loading state
+                if (task.id != null) {
+                  final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+                  try {
+                    bool success;
+                    if (task.isDone) {
+                      // Unmark as done
+                      final updatedTask = task.copyWith(isDone: false);
+                      success = await ref
+                          .read(taskProvider.notifier)
+                          .updateTask(updatedTask);
+                    } else {
+                      // Mark as done
+                      success = await ref
+                          .read(taskProvider.notifier)
+                          .markAsDone(task.id!);
+                    }
+
+                    if (success) {
+                      scaffoldMessenger.showSnackBar(
+                        SnackBar(
+                          content: Text(task.isDone
+                              ? 'Task marked as incomplete'
+                              : 'Task completed! 🎉'),
+                          backgroundColor:
+                              task.isDone ? Colors.orange : Colors.green,
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    } else {
+                      scaffoldMessenger.showSnackBar(
+                        const SnackBar(
+                          content: Text('Failed to update task status'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    scaffoldMessenger.showSnackBar(
+                      const SnackBar(
+                        content: Text('Error updating task status'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: task.isDone ? Colors.green : Colors.transparent,
+                  border: Border.all(
+                    color: task.isDone ? Colors.green : Colors.grey[400]!,
+                    width: 2,
+                  ),
+                ),
+                child: task.isDone
+                    ? const Icon(
+                        Icons.check,
+                        color: Colors.white,
+                        size: 16,
+                      )
+                    : null,
+              ),
+            ),
+            title: Text(
+              task.name,
+              style: TextStyle(
+                decoration: task.isDone ? TextDecoration.lineThrough : null,
+                fontWeight: FontWeight.w500,
+                color: task.isDone ? Colors.grey[600] : null,
+              ),
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (task.description.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    task.description,
+                    style: TextStyle(
+                      color: task.isDone ? Colors.grey[500] : Colors.grey[700],
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: _getTagColor(task.tag).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: _getTagColor(task.tag).withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Text(
+                        task.tag.displayName,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: _getTagColor(task.tag),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    Icon(
+                      Icons.schedule,
+                      size: 16,
+                      color: Colors.grey[600],
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      _formatDeadline(task.deadline),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            trailing: IconButton(
+              icon: Icon(
+                Icons.delete_outline,
+                color: task.isDone ? Colors.grey[400] : Colors.grey[600],
+              ),
+              onPressed: () async {
+                // Show confirmation dialog for delete
+                final shouldDelete = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Delete Task'),
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                            'Are you sure you want to delete this task?'),
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                task.name,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              if (task.description.isNotEmpty) ...[
+                                const SizedBox(height: 4),
+                                Text(
+                                  task.description,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'This action cannot be undone.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.red,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ],
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: const Text('Cancel'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text('Delete'),
+                      ),
+                    ],
+                  ),
+                );
+
+                if (shouldDelete == true && task.id != null) {
+                  final currentContext = context;
+
+                  if (currentContext.mounted) {
+                    // Show loading while deleting
+                    showDialog(
+                      context: currentContext,
+                      barrierDismissible: false,
+                      builder: (context) => const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    );
+                  }
+
+                  try {
+                    final success = await ref
+                        .read(taskProvider.notifier)
+                        .deleteTask(task.id!);
+
+                    // Hide loading dialog
+                    if (context.mounted) Navigator.of(context).pop();
+
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Row(
+                            children: [
+                              Icon(
+                                success ? Icons.check_circle : Icons.error,
+                                color: Colors.white,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(success
+                                    ? 'Task "${task.name}" deleted successfully'
+                                    : 'Failed to delete task. Please try again.'),
+                              ),
+                            ],
+                          ),
+                          backgroundColor: success ? Colors.green : Colors.red,
+                          duration: const Duration(seconds: 3),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    // Hide loading dialog
+                    if (context.mounted) Navigator.of(context).pop();
+
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Row(
+                            children: [
+                              Icon(Icons.error, color: Colors.white),
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                    'An error occurred while deleting the task'),
+                              ),
+                            ],
+                          ),
+                          backgroundColor: Colors.red,
+                          duration: Duration(seconds: 3),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
+                  }
+                }
+              },
+            ),
+            onTap: () {
+              // Navigate to edit task screen
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => AddEditTaskScreen(task: task),
+                ),
+              );
+            },
+          ),
+        ));
   }
 
   Color _getTagColor(Tag tag) {
@@ -502,7 +517,7 @@ class HomeScreen extends ConsumerWidget {
   String _formatDeadline(DateTime deadline) {
     final now = DateTime.now();
     final difference = deadline.difference(now);
-    
+
     if (difference.isNegative) {
       return 'Overdue';
     } else if (difference.inDays > 0) {

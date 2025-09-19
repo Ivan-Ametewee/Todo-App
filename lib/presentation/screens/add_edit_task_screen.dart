@@ -11,9 +11,9 @@ class AddEditTaskScreen extends ConsumerStatefulWidget {
   final Task? task; // null for add, Task object for edit
 
   const AddEditTaskScreen({
-    Key? key,
+    super.key,
     this.task,
-  }) : super(key: key);
+  });
 
   @override
   ConsumerState<AddEditTaskScreen> createState() => _AddEditTaskScreenState();
@@ -128,7 +128,7 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
                       });
                     }
                   },
-                  selectedColor: _getTagColor(tag).withOpacity(0.3),
+                  selectedColor: _getTagColor(tag).withValues(alpha: 0.3),
                   backgroundColor: Colors.grey[200],
                 );
               }).toList(),
@@ -189,18 +189,18 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
                 final imageService = ImageService();
 
                 // Test gallery permission
-                final hasPermission = await imageService.hasStoragePermission();
-                print('Gallery permission: $hasPermission');
+                //final hasPermission = await imageService.hasStoragePermission();
+                //print('Gallery permission: $hasPermission');
 
                 // Test gallery picker
                 final imagePath = await imageService.pickImageFromGallery();
                 if (imagePath != null) {
-                  print('Image selected: $imagePath');
+                  //print('Image selected: $imagePath');
                   setState(() {
                     _selectedImagePath = imagePath;
                   });
                 } else {
-                  print('No image selected');
+                  //print('No image selected');
                 }
               },
               child: const Icon(Icons.bug_report),
@@ -333,13 +333,13 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
 
-    if (date != null) {
+    if (date != null && mounted) {
       final time = await showTimePicker(
         context: context,
         initialTime: TimeOfDay.fromDateTime(_selectedDeadline),
       );
 
-      if (time != null) {
+      if (time != null && mounted) {
         setState(() {
           _selectedDeadline = DateTime(
             date.year,
@@ -371,6 +371,8 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
   void _pickImageFromCamera() async {
     try {
       final imagePath = await _imageService.pickImageFromCamera();
+      if (!mounted) return;
+
       if (imagePath != null) {
         setState(() {
           _selectedImagePath = imagePath;
@@ -390,6 +392,8 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
         );
       }
     } catch (e) {
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Error accessing camera'),
@@ -426,12 +430,14 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
           );
 
           if (requestPermission != true) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Permission is required to select images'),
-                backgroundColor: Colors.orange,
-              ),
-            );
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Permission is required to select images'),
+                  backgroundColor: Colors.orange,
+                ),
+              );
+            }
             return;
           }
         }

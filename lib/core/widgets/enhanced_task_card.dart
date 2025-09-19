@@ -10,12 +10,12 @@ class EnhancedTaskCard extends StatelessWidget {
   final VoidCallback? onDelete;
 
   const EnhancedTaskCard({
-    Key? key,
+    super.key,
     required this.task,
     this.onTap,
     this.onToggleDone,
     this.onDelete,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -44,38 +44,46 @@ class EnhancedTaskCard extends StatelessWidget {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: task.isDone ? theme.primaryColor : Colors.grey[400]!,
+                          color: task.isDone
+                              ? theme.primaryColor
+                              : Colors.grey[400]!,
                           width: 2,
                         ),
-                        color: task.isDone ? theme.primaryColor : Colors.transparent,
+                        color: task.isDone
+                            ? theme.primaryColor
+                            : Colors.transparent,
                       ),
                       child: task.isDone
-                          ? const Icon(Icons.check, color: Colors.white, size: 16)
+                          ? const Icon(Icons.check,
+                              color: Colors.white, size: 16)
                           : null,
                     ),
                   ),
                   const SizedBox(width: 12),
-                  
+
                   // Task name
                   Expanded(
                     child: Text(
                       task.name,
                       style: AppTheme.titleStyle.copyWith(
-                        decoration: task.isDone ? TextDecoration.lineThrough : null,
+                        decoration:
+                            task.isDone ? TextDecoration.lineThrough : null,
                         color: task.isDone ? Colors.grey[600] : null,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  
+
                   // Tag chip
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: tagColor.withOpacity(0.1),
+                      color: tagColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: tagColor.withOpacity(0.3)),
+                      border:
+                          Border.all(color: tagColor.withValues(alpha: 0.3)),
                     ),
                     child: Text(
                       task.tag.displayName,
@@ -87,7 +95,7 @@ class EnhancedTaskCard extends StatelessWidget {
                   ),
                 ],
               ),
-              
+
               // Description
               if (task.description.isNotEmpty) ...[
                 const SizedBox(height: 8),
@@ -100,9 +108,9 @@ class EnhancedTaskCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
-              
+
               const SizedBox(height: 12),
-              
+
               // Bottom row with image, deadline, and actions
               Row(
                 children: [
@@ -111,7 +119,7 @@ class EnhancedTaskCard extends StatelessWidget {
                     TaskThumbnailWidget(imagePath: task.imagePath),
                     const SizedBox(width: 12),
                   ],
-                  
+
                   // Deadline info
                   Expanded(
                     child: Column(
@@ -122,14 +130,20 @@ class EnhancedTaskCard extends StatelessWidget {
                             Icon(
                               Icons.schedule_outlined,
                               size: 16,
-                              color: isOverdue ? AppTheme.errorColor : Colors.grey[600],
+                              color: isOverdue
+                                  ? AppTheme.errorColor
+                                  : Colors.grey[600],
                             ),
                             const SizedBox(width: 4),
                             Text(
                               _formatDeadline(),
                               style: AppTheme.captionStyle.copyWith(
-                                color: isOverdue ? AppTheme.errorColor : Colors.grey[600],
-                                fontWeight: isOverdue ? FontWeight.w600 : FontWeight.normal,
+                                color: isOverdue
+                                    ? AppTheme.errorColor
+                                    : Colors.grey[600],
+                                fontWeight: isOverdue
+                                    ? FontWeight.w600
+                                    : FontWeight.normal,
                               ),
                             ),
                           ],
@@ -154,7 +168,7 @@ class EnhancedTaskCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  
+
                   // Delete button
                   if (onDelete != null)
                     IconButton(
@@ -165,7 +179,7 @@ class EnhancedTaskCard extends StatelessWidget {
                     ),
                 ],
               ),
-              
+
               // Overdue indicator
               if (isOverdue) ...[
                 const SizedBox(height: 8),
@@ -173,9 +187,10 @@ class EnhancedTaskCard extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 6),
                   decoration: BoxDecoration(
-                    color: AppTheme.errorColor.withOpacity(0.1),
+                    color: AppTheme.errorColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: AppTheme.errorColor.withOpacity(0.3)),
+                    border: Border.all(
+                        color: AppTheme.errorColor.withValues(alpha: 0.3)),
                   ),
                   child: Text(
                     'OVERDUE',
@@ -197,11 +212,11 @@ class EnhancedTaskCard extends StatelessWidget {
   String _formatDeadline() {
     final now = DateTime.now();
     final difference = task.deadline.difference(now);
-    
+
     if (difference.isNegative) {
       return 'Overdue';
     }
-    
+
     if (difference.inDays > 0) {
       return '${difference.inDays} day${difference.inDays == 1 ? '' : 's'} left';
     } else if (difference.inHours > 0) {

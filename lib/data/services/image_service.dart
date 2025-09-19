@@ -79,7 +79,7 @@ class ImageService {
       }
       return null;
     } catch (e) {
-      print('Error picking image from gallery: $e');
+      //print('Error picking image from gallery: $e');
       rethrow; // Rethrow to handle in UI
     }
   }
@@ -103,7 +103,7 @@ class ImageService {
       }
       return null;
     } catch (e) {
-      print('Error taking image from camera: $e');
+      //print('Error taking image from camera: $e');
       rethrow;
     }
   }
@@ -117,7 +117,7 @@ class ImageService {
       }
       return await pickImageFromGallery();
     } catch (e) {
-      print('Error picking image: $e');
+      //print('Error picking image: $e');
       rethrow;
     }
   }
@@ -143,7 +143,7 @@ class ImageService {
 
       return savedPath;
     } catch (e) {
-      print('Error saving image: $e');
+      //print('Error saving image: $e');
       rethrow;
     }
   }
@@ -157,7 +157,7 @@ class ImageService {
       }
       return false;
     } catch (e) {
-      print('Error deleting image: $e');
+      //print('Error deleting image: $e');
       return false;
     }
   }

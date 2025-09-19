@@ -9,7 +9,7 @@ class AppTheme {
   static const Color surfaceColor = Colors.white;
   static const Color errorColor = Color(0xFFE53E3E);
   static const Color successColor = Color(0xFF38A169);
-  
+
   // Tag Colors
   static const Map<String, Color> tagColors = {
     'business': Color(0xFF1976D2),
@@ -20,15 +20,18 @@ class AppTheme {
   };
 
   static ThemeData get lightTheme {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: primaryColor,
+      brightness: Brightness.light,
+      surface: surfaceColor,
+      surfaceContainer: backgroundColor,
+    );
+
     return ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: primaryColor,
-        brightness: Brightness.light,
-        surface: surfaceColor,
-        background: backgroundColor,
-      ),
-      
+      colorScheme: colorScheme,
+      primaryColor: colorScheme.primary,
+
       // AppBar Theme
       appBarTheme: const AppBarTheme(
         elevation: 0,
@@ -97,7 +100,8 @@ class AppTheme {
           borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: errorColor),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
 
       // FloatingActionButton Theme
@@ -109,7 +113,7 @@ class AppTheme {
       // Chip Theme
       chipTheme: ChipThemeData(
         backgroundColor: Colors.grey[200],
-        selectedColor: primaryColor.withOpacity(0.2),
+        selectedColor: primaryColor.withValues(alpha: 0.2),
         labelStyle: const TextStyle(fontSize: 12),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         shape: RoundedRectangleBorder(
@@ -132,7 +136,6 @@ class AppTheme {
         seedColor: primaryColor,
         brightness: Brightness.dark,
       ),
-      
       cardTheme: const CardThemeData(
         elevation: 4,
         shape: RoundedRectangleBorder(
@@ -149,23 +152,23 @@ class AppTheme {
   }
 
   static TextStyle get headlineStyle => const TextStyle(
-    fontSize: 24,
-    fontWeight: FontWeight.bold,
-  );
+        fontSize: 24,
+        fontWeight: FontWeight.bold,
+      );
 
   static TextStyle get titleStyle => const TextStyle(
-    fontSize: 18,
-    fontWeight: FontWeight.w600,
-  );
+        fontSize: 18,
+        fontWeight: FontWeight.w600,
+      );
 
   static TextStyle get bodyStyle => const TextStyle(
-    fontSize: 14,
-    fontWeight: FontWeight.normal,
-  );
+        fontSize: 14,
+        fontWeight: FontWeight.normal,
+      );
 
   static TextStyle get captionStyle => TextStyle(
-    fontSize: 12,
-    fontWeight: FontWeight.normal,
-    color: Colors.grey[600],
-  );
+        fontSize: 12,
+        fontWeight: FontWeight.normal,
+        color: Colors.grey[600],
+      );
 }

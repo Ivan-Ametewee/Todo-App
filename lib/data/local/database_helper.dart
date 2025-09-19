@@ -29,7 +29,7 @@ class DatabaseHelper {
         onCreate: _onCreate,
       );
     } catch (e) {
-      print('Error initializing database: $e');
+      // print('Error initializing database: $e');
       rethrow;
     }
   }
@@ -58,7 +58,7 @@ class DatabaseHelper {
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     } catch (e) {
-      print('Error inserting task: $e');
+      // print('Error inserting task: $e');
       rethrow;
     }
   }
@@ -67,12 +67,12 @@ class DatabaseHelper {
     try {
       final db = await database;
       final List<Map<String, dynamic>> maps = await db.query('tasks');
-      
+
       return List.generate(maps.length, (i) {
         return Task.fromMap(maps[i]);
       });
     } catch (e) {
-      print('Error getting tasks: $e');
+      // print('Error getting tasks: $e');
       rethrow;
     }
   }
@@ -87,7 +87,7 @@ class DatabaseHelper {
         whereArgs: [task.id],
       );
     } catch (e) {
-      print('Error updating task: $e');
+      // print('Error updating task: $e');
       rethrow;
     }
   }
@@ -101,7 +101,7 @@ class DatabaseHelper {
         whereArgs: [id],
       );
     } catch (e) {
-      print('Error deleting task: $e');
+      //print('Error deleting task: $e');
       rethrow;
     }
   }

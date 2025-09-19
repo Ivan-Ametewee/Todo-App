@@ -10,7 +10,7 @@ class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   static final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
-  
+
   // Platform channel for exact alarm permission
   static const platform = MethodChannel('com.example.todo_app/exact_alarms');
 
@@ -22,7 +22,7 @@ class NotificationService {
     try {
       // Initialize timezone data
       tz_data.initializeTimeZones();
-      
+
       const AndroidInitializationSettings androidSettings =
           AndroidInitializationSettings('@mipmap/ic_launcher');
 
@@ -46,9 +46,9 @@ class NotificationService {
 
       // Request permissions
       await _requestPermissions();
-      print('Notification service initialized successfully');
+      // print('Notification service initialized successfully');
     } catch (e) {
-      print('Error initializing notifications: $e');
+      // print('Error initializing notifications: $e');
       // Don't rethrow - app should continue even if notifications fail
     }
   }
@@ -57,15 +57,14 @@ class NotificationService {
     try {
       // Request notification permission
       final notificationPermission = await Permission.notification.request();
-      print('Notification permission: $notificationPermission');
-      
+      // print('Notification permission: $notificationPermission');
+
       // Request exact alarm permission for Android 12+
-      bool hasExactAlarmPermission = await _requestExactAlarmPermission();
-      print('Exact alarm permission: $hasExactAlarmPermission');
+      await _requestExactAlarmPermission();
 
       return notificationPermission == PermissionStatus.granted;
     } catch (e) {
-      print('Error requesting permissions: $e');
+      // print('Error requesting permissions: $e');
       return false;
     }
   }
@@ -75,11 +74,10 @@ class NotificationService {
       // For Android 12+ (API 31+), we need exact alarm permission
       final result = await platform.invokeMethod('requestExactAlarmPermission');
       return result == true;
-    } on PlatformException catch (e) {
-      print('Failed to request exact alarm permission: ${e.message}');
+    } on PlatformException {
       return false;
     } catch (e) {
-      print('Error requesting exact alarm permission: $e');
+      // print('Error requesting exact alarm permission: $e');
       return false;
     }
   }
@@ -89,7 +87,7 @@ class NotificationService {
       final result = await platform.invokeMethod('canScheduleExactAlarms');
       return result == true;
     } catch (e) {
-      print('Error checking exact alarm permission: $e');
+      // Error checking exact alarm permission - handle silently
       return false;
     }
   }
@@ -103,28 +101,28 @@ class NotificationService {
 
     final now = DateTime.now();
     bool canScheduleExact = await canScheduleExactAlarms();
-    
+
     if (!canScheduleExact) {
-      print('Cannot schedule exact alarms - using approximate scheduling');
-      // Fallback to approximate scheduling
+      // Cannot schedule exact alarms - falling back to approximate scheduling
       await _scheduleApproximateNotifications(task, now);
       return;
     }
-    
+
     // Schedule reminder notification (before deadline)
     if (task.notifyBefore.inMinutes > 0) {
       final reminderDate = task.deadline.subtract(task.notifyBefore);
-      
+
       if (reminderDate.isAfter(now)) {
         await _scheduleNotification(
           id: task.id! * 10,
           title: '⏰ Task Reminder',
-          body: 'Your task "${task.name}" is due ${_formatTimeUntil(task.notifyBefore)}!',
+          body:
+              'Your task "${task.name}" is due ${_formatTimeUntil(task.notifyBefore)}!',
           scheduledDate: reminderDate,
           payload: 'reminder_${task.id}',
           useExactTiming: true,
         );
-        print('Reminder scheduled for ${task.name} at $reminderDate');
+        // Reminder scheduled for task at specified date
       }
     }
 
@@ -138,11 +136,12 @@ class NotificationService {
         payload: 'due_${task.id}',
         useExactTiming: true,
       );
-      print('Due notification scheduled for ${task.name} at ${task.deadline}');
+      // Due notification scheduled for task at deadline
     }
   }
 
-  Future<void> _scheduleApproximateNotifications(Task task, DateTime now) async {
+  Future<void> _scheduleApproximateNotifications(
+      Task task, DateTime now) async {
     // Use inexact scheduling as fallback
     if (task.notifyBefore.inMinutes > 0) {
       final reminderDate = task.deadline.subtract(task.notifyBefore);
@@ -213,12 +212,13 @@ class NotificationService {
         final delay = scheduledDate.difference(DateTime.now());
         if (delay.inSeconds > 0) {
           Future.delayed(delay, () async {
-            await _notificationsPlugin.show(id, title, body, platformDetails, payload: payload);
+            await _notificationsPlugin.show(id, title, body, platformDetails,
+                payload: payload);
           });
         }
       }
     } catch (e) {
-      print('Error scheduling notification: $e');
+      // Failed to schedule notification - handle silently
     }
   }
 
@@ -226,9 +226,9 @@ class NotificationService {
     try {
       await _notificationsPlugin.cancel(taskId * 10);
       await _notificationsPlugin.cancel(taskId * 10 + 1);
-      print('Cancelled notifications for task $taskId');
+      // Successfully cancelled notifications for task
     } catch (e) {
-      print('Error canceling notifications for task $taskId: $e');
+      // Failed to cancel notifications for task - handle silently
     }
   }
 

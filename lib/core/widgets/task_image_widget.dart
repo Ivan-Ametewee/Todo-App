@@ -11,14 +11,14 @@ class TaskImageWidget extends StatelessWidget {
   final bool showErrorIcon;
 
   const TaskImageWidget({
-    Key? key,
+    super.key,
     required this.imagePath,
     this.width,
     this.height,
     this.fit = BoxFit.cover,
     this.borderRadius,
     this.showErrorIcon = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -93,9 +93,9 @@ class TaskThumbnailWidget extends StatelessWidget {
   final String? imagePath;
 
   const TaskThumbnailWidget({
-    Key? key,
+    super.key,
     required this.imagePath,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -114,9 +114,9 @@ class TaskDetailImageWidget extends StatelessWidget {
   final String? imagePath;
 
   const TaskDetailImageWidget({
-    Key? key,
+    super.key,
     required this.imagePath,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
