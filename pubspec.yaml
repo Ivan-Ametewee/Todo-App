@@ -37,6 +37,9 @@ dependencies:
   device_info_plus: ^9.1.1
 
 dev_dependencies:
+  flutter_launcher_icons: "^0.14.4"
+  flutter_native_splash: ^2.4.6
+
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
@@ -50,3 +53,16 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/app_icon.png"
+
+flutter_native_splash:
+  color: "#ffffff"  # background color
+  image: assets/icon/app_icon.png  # path to your splash image
+  #branding: assets/splash/branding.png  # optional small logo at bottom
+  android: true
+  ios: true
+  web: false
