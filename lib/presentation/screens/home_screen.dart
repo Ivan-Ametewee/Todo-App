@@ -223,14 +223,17 @@ class HomeScreen extends ConsumerWidget {
                 ? GestureDetector(
                     onTap: () {
                       // Open carousel starting with this task's image
-                      final tasksWithImages = ref.read(taskProvider)
-                          .where((t) => t.imagePath != null && t.imagePath!.isNotEmpty)
+                      final tasksWithImages = ref
+                          .read(taskProvider)
+                          .where((t) =>
+                              t.imagePath != null && t.imagePath!.isNotEmpty)
                           .toList();
-                      
+
                       if (tasksWithImages.isNotEmpty) {
-                        int initialIndex = tasksWithImages.indexWhere((t) => t.id == task.id);
+                        int initialIndex =
+                            tasksWithImages.indexWhere((t) => t.id == task.id);
                         if (initialIndex == -1) initialIndex = 0;
-                        
+
                         Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (context) => TaskImageCarousel(
@@ -244,14 +247,14 @@ class HomeScreen extends ConsumerWidget {
                     child: Hero(
                       tag: 'task_image_${task.id}',
                       child: Container(
-                        width: 50,
-                        height: 50,
+                        width: 24,
+                        height: 24,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(4),
                           border: Border.all(color: Colors.grey[300]!),
                         ),
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(7),
+                          borderRadius: BorderRadius.circular(4),
                           child: Image.file(
                             File(task.imagePath!),
                             fit: BoxFit.cover,
@@ -346,7 +349,8 @@ class HomeScreen extends ConsumerWidget {
                   child: Text(
                     task.name,
                     style: TextStyle(
-                      decoration: task.isDone ? TextDecoration.lineThrough : null,
+                      decoration:
+                          task.isDone ? TextDecoration.lineThrough : null,
                       fontWeight: FontWeight.w500,
                       color: task.isDone ? Colors.grey[600] : null,
                     ),
@@ -511,148 +515,149 @@ class HomeScreen extends ConsumerWidget {
                     color: task.isDone ? Colors.grey[400] : Colors.grey[600],
                   ),
                   onPressed: () async {
-                // Show confirmation dialog for delete
-                final shouldDelete = await showDialog<bool>(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text('Delete Task'),
-                    content: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                            'Are you sure you want to delete this task?'),
-                        const SizedBox(height: 8),
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[100],
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                task.name,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                ),
+                    // Show confirmation dialog for delete
+                    final shouldDelete = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Delete Task'),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                                'Are you sure you want to delete this task?'),
+                            const SizedBox(height: 8),
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                borderRadius: BorderRadius.circular(8),
                               ),
-                              if (task.description.isNotEmpty) ...[
-                                const SizedBox(height: 4),
-                                Text(
-                                  task.description,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey[600],
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    task.name,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ],
+                                  if (task.description.isNotEmpty) ...[
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      task.description,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[600],
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'This action cannot be undone.',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.red,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ],
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(false),
+                            child: const Text('Cancel'),
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'This action cannot be undone.',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.red,
-                            fontStyle: FontStyle.italic,
+                          ElevatedButton(
+                            onPressed: () => Navigator.of(context).pop(true),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              foregroundColor: Colors.white,
+                            ),
+                            child: const Text('Delete'),
                           ),
-                        ),
-                      ],
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(false),
-                        child: const Text('Cancel'),
-                      ),
-                      ElevatedButton(
-                        onPressed: () => Navigator.of(context).pop(true),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          foregroundColor: Colors.white,
-                        ),
-                        child: const Text('Delete'),
-                      ),
-                    ],
-                  ),
-                );
-
-                if (shouldDelete == true && task.id != null) {
-                  final currentContext = context;
-
-                  if (currentContext.mounted) {
-                    // Show loading while deleting
-                    showDialog(
-                      context: currentContext,
-                      barrierDismissible: false,
-                      builder: (context) => const Center(
-                        child: CircularProgressIndicator(),
+                        ],
                       ),
                     );
-                  }
 
-                  try {
-                    final success = await ref
-                        .read(taskProvider.notifier)
-                        .deleteTask(task.id!);
+                    if (shouldDelete == true && task.id != null) {
+                      final currentContext = context;
 
-                    // Hide loading dialog
-                    if (context.mounted) Navigator.of(context).pop();
-
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Row(
-                            children: [
-                              Icon(
-                                success ? Icons.check_circle : Icons.error,
-                                color: Colors.white,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(success
-                                    ? 'Task "${task.name}" deleted successfully'
-                                    : 'Failed to delete task. Please try again.'),
-                              ),
-                            ],
+                      if (currentContext.mounted) {
+                        // Show loading while deleting
+                        showDialog(
+                          context: currentContext,
+                          barrierDismissible: false,
+                          builder: (context) => const Center(
+                            child: CircularProgressIndicator(),
                           ),
-                          backgroundColor: success ? Colors.green : Colors.red,
-                          duration: const Duration(seconds: 3),
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
-                    }
-                  } catch (e) {
-                    // Hide loading dialog
-                    if (context.mounted) Navigator.of(context).pop();
+                        );
+                      }
 
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Row(
-                            children: [
-                              Icon(Icons.error, color: Colors.white),
-                              SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                    'An error occurred while deleting the task'),
+                      try {
+                        final success = await ref
+                            .read(taskProvider.notifier)
+                            .deleteTask(task.id!);
+
+                        // Hide loading dialog
+                        if (context.mounted) Navigator.of(context).pop();
+
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Row(
+                                children: [
+                                  Icon(
+                                    success ? Icons.check_circle : Icons.error,
+                                    color: Colors.white,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(success
+                                        ? 'Task "${task.name}" deleted successfully'
+                                        : 'Failed to delete task. Please try again.'),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                          backgroundColor: Colors.red,
-                          duration: Duration(seconds: 3),
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
+                              backgroundColor:
+                                  success ? Colors.green : Colors.red,
+                              duration: const Duration(seconds: 3),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        // Hide loading dialog
+                        if (context.mounted) Navigator.of(context).pop();
+
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Row(
+                                children: [
+                                  Icon(Icons.error, color: Colors.white),
+                                  SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                        'An error occurred while deleting the task'),
+                                  ),
+                                ],
+                              ),
+                              backgroundColor: Colors.red,
+                              duration: Duration(seconds: 3),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        }
+                      }
                     }
-                  }
-                }
-              },
-            ),
+                  },
+                ),
               ],
             ),
             onTap: () {
@@ -696,6 +701,7 @@ class HomeScreen extends ConsumerWidget {
       return '${difference.inMinutes}m left';
     }
   }
+
   void _showImageCarousel(BuildContext context, WidgetRef ref) {
     final allTasks = ref.read(taskProvider);
     final tasksWithImages = allTasks
@@ -722,4 +728,3 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 }
-
