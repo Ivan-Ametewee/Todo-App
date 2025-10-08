@@ -500,7 +500,7 @@ class HomeScreen extends ConsumerWidget {
                           ? const Icon(
                               Icons.check,
                               color: Colors.white,
-                              size: 16,
+                              size: 12,
                             )
                           : null,
                     ),
