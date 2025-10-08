@@ -1,9 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/task_model.dart';
 import '../../data/models/tag_enum.dart';
 import '../../state/task_store.dart';
 import 'add_edit_task_screen.dart';
+import '../widgets/task_image_carousel.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -16,6 +18,14 @@ class HomeScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('My Tasks'),
         elevation: 0,
+        actions: [
+          // Add carousel button to app bar
+          IconButton(
+            icon: const Icon(Icons.photo_library_outlined),
+            onPressed: () => _showImageCarousel(context, ref),
+            tooltip: 'View All Task Images',
+          ),
+        ],
       ),
       body: tasks.isEmpty
           ? _buildEmptyState()
@@ -208,84 +218,141 @@ class HomeScreen extends ConsumerWidget {
           margin: const EdgeInsets.only(bottom: 12),
           child: ListTile(
             contentPadding: const EdgeInsets.all(16),
-            leading: GestureDetector(
-              onTap: () async {
-                // Toggle task completion with loading state
-                if (task.id != null) {
-                  final scaffoldMessenger = ScaffoldMessenger.of(context);
-
-                  try {
-                    bool success;
-                    if (task.isDone) {
-                      // Unmark as done
-                      final updatedTask = task.copyWith(isDone: false);
-                      success = await ref
-                          .read(taskProvider.notifier)
-                          .updateTask(updatedTask);
-                    } else {
-                      // Mark as done
-                      success = await ref
-                          .read(taskProvider.notifier)
-                          .markAsDone(task.id!);
-                    }
-
-                    if (success) {
-                      scaffoldMessenger.showSnackBar(
-                        SnackBar(
-                          content: Text(task.isDone
-                              ? 'Task marked as incomplete'
-                              : 'Task completed! 🎉'),
-                          backgroundColor:
-                              task.isDone ? Colors.orange : Colors.green,
-                          duration: const Duration(seconds: 2),
+            // Updated leading widget to handle both image and checkbox
+            leading: task.imagePath != null && task.imagePath!.isNotEmpty
+                ? GestureDetector(
+                    onTap: () {
+                      // Open carousel starting with this task's image
+                      final tasksWithImages = ref.read(taskProvider)
+                          .where((t) => t.imagePath != null && t.imagePath!.isNotEmpty)
+                          .toList();
+                      
+                      if (tasksWithImages.isNotEmpty) {
+                        int initialIndex = tasksWithImages.indexWhere((t) => t.id == task.id);
+                        if (initialIndex == -1) initialIndex = 0;
+                        
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => TaskImageCarousel(
+                              tasksWithImages: tasksWithImages,
+                              initialIndex: initialIndex,
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                    child: Hero(
+                      tag: 'task_image_${task.id}',
+                      child: Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.grey[300]!),
                         ),
-                      );
-                    } else {
-                      scaffoldMessenger.showSnackBar(
-                        const SnackBar(
-                          content: Text('Failed to update task status'),
-                          backgroundColor: Colors.red,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(7),
+                          child: Image.file(
+                            File(task.imagePath!),
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: Colors.grey[200],
+                                child: Icon(
+                                  Icons.broken_image_outlined,
+                                  color: Colors.grey[400],
+                                ),
+                              );
+                            },
+                          ),
                         ),
-                      );
-                    }
-                  } catch (e) {
-                    scaffoldMessenger.showSnackBar(
-                      const SnackBar(
-                        content: Text('Error updating task status'),
-                        backgroundColor: Colors.red,
                       ),
-                    );
-                  }
-                }
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: task.isDone ? Colors.green : Colors.transparent,
-                  border: Border.all(
-                    color: task.isDone ? Colors.green : Colors.grey[400]!,
-                    width: 2,
+                    ),
+                  )
+                : GestureDetector(
+                    onTap: () async {
+                      // Toggle task completion with loading state
+                      if (task.id != null) {
+                        final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+                        try {
+                          bool success;
+                          if (task.isDone) {
+                            // Unmark as done
+                            final updatedTask = task.copyWith(isDone: false);
+                            success = await ref
+                                .read(taskProvider.notifier)
+                                .updateTask(updatedTask);
+                          } else {
+                            // Mark as done
+                            success = await ref
+                                .read(taskProvider.notifier)
+                                .markAsDone(task.id!);
+                          }
+
+                          if (success) {
+                            scaffoldMessenger.showSnackBar(
+                              SnackBar(
+                                content: Text(task.isDone
+                                    ? 'Task marked as incomplete'
+                                    : 'Task completed! 🎉'),
+                                backgroundColor:
+                                    task.isDone ? Colors.orange : Colors.green,
+                                duration: const Duration(seconds: 2),
+                              ),
+                            );
+                          } else {
+                            scaffoldMessenger.showSnackBar(
+                              const SnackBar(
+                                content: Text('Failed to update task status'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          scaffoldMessenger.showSnackBar(
+                            const SnackBar(
+                              content: Text('Error updating task status'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      }
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: task.isDone ? Colors.green : Colors.transparent,
+                        border: Border.all(
+                          color: task.isDone ? Colors.green : Colors.grey[400]!,
+                          width: 2,
+                        ),
+                      ),
+                      child: task.isDone
+                          ? const Icon(
+                              Icons.check,
+                              color: Colors.white,
+                              size: 16,
+                            )
+                          : null,
+                    ),
+                  ),
+            title: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    task.name,
+                    style: TextStyle(
+                      decoration: task.isDone ? TextDecoration.lineThrough : null,
+                      fontWeight: FontWeight.w500,
+                      color: task.isDone ? Colors.grey[600] : null,
+                    ),
                   ),
                 ),
-                child: task.isDone
-                    ? const Icon(
-                        Icons.check,
-                        color: Colors.white,
-                        size: 16,
-                      )
-                    : null,
-              ),
-            ),
-            title: Text(
-              task.name,
-              style: TextStyle(
-                decoration: task.isDone ? TextDecoration.lineThrough : null,
-                fontWeight: FontWeight.w500,
-                color: task.isDone ? Colors.grey[600] : null,
-              ),
+              ],
             ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -321,6 +388,37 @@ class HomeScreen extends ConsumerWidget {
                         ),
                       ),
                     ),
+                    // Add image indicator if task has image
+                    // if (task.imagePath != null && task.imagePath!.isNotEmpty) ...[
+                    //   const SizedBox(width: 8),
+                    //   Container(
+                    //     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    //     decoration: BoxDecoration(
+                    //       color: Colors.blue.withValues(alpha: 0.1),
+                    //       borderRadius: BorderRadius.circular(8),
+                    //       border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+                    //     ),
+                    //     child: Row(
+                    //       mainAxisSize: MainAxisSize.min,
+                    //       children: [
+                    //         Icon(
+                    //           Icons.image_outlined,
+                    //           size: 10,
+                    //           color: Colors.blue[700],
+                    //         ),
+                    //         const SizedBox(width: 2),
+                    //         Text(
+                    //           'Image',
+                    //           style: TextStyle(
+                    //             fontSize: 10,
+                    //             color: Colors.blue[700],
+                    //             fontWeight: FontWeight.w500,
+                    //           ),
+                    //         ),
+                    //       ],
+                    //     ),
+                    //   ),
+                    // ],
                     const Spacer(),
                     Icon(
                       Icons.schedule,
@@ -339,12 +437,80 @@ class HomeScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            trailing: IconButton(
-              icon: Icon(
-                Icons.delete_outline,
-                color: task.isDone ? Colors.grey[400] : Colors.grey[600],
-              ),
-              onPressed: () async {
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Add completion checkbox for tasks with images
+                if (task.imagePath != null && task.imagePath!.isNotEmpty)
+                  GestureDetector(
+                    onTap: () async {
+                      // Toggle completion for image tasks
+                      if (task.id != null) {
+                        final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+                        try {
+                          bool success;
+                          if (task.isDone) {
+                            final updatedTask = task.copyWith(isDone: false);
+                            success = await ref
+                                .read(taskProvider.notifier)
+                                .updateTask(updatedTask);
+                          } else {
+                            success = await ref
+                                .read(taskProvider.notifier)
+                                .markAsDone(task.id!);
+                          }
+
+                          if (success) {
+                            scaffoldMessenger.showSnackBar(
+                              SnackBar(
+                                content: Text(task.isDone
+                                    ? 'Task marked as incomplete'
+                                    : 'Task completed! 🎉'),
+                                backgroundColor:
+                                    task.isDone ? Colors.orange : Colors.green,
+                                duration: const Duration(seconds: 2),
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          scaffoldMessenger.showSnackBar(
+                            const SnackBar(
+                              content: Text('Error updating task status'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      }
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      width: 16,
+                      height: 16,
+                      margin: const EdgeInsets.only(right: 8),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: task.isDone ? Colors.green : Colors.transparent,
+                        border: Border.all(
+                          color: task.isDone ? Colors.green : Colors.grey[400]!,
+                          width: 2,
+                        ),
+                      ),
+                      child: task.isDone
+                          ? const Icon(
+                              Icons.check,
+                              color: Colors.white,
+                              size: 16,
+                            )
+                          : null,
+                    ),
+                  ),
+                IconButton(
+                  icon: Icon(
+                    Icons.delete_outline,
+                    color: task.isDone ? Colors.grey[400] : Colors.grey[600],
+                  ),
+                  onPressed: () async {
                 // Show confirmation dialog for delete
                 final shouldDelete = await showDialog<bool>(
                   context: context,
@@ -487,6 +653,8 @@ class HomeScreen extends ConsumerWidget {
                 }
               },
             ),
+              ],
+            ),
             onTap: () {
               // Navigate to edit task screen
               Navigator.of(context).push(
@@ -528,4 +696,30 @@ class HomeScreen extends ConsumerWidget {
       return '${difference.inMinutes}m left';
     }
   }
+  void _showImageCarousel(BuildContext context, WidgetRef ref) {
+    final allTasks = ref.read(taskProvider);
+    final tasksWithImages = allTasks
+        .where((task) => task.imagePath != null && task.imagePath!.isNotEmpty)
+        .toList();
+
+    if (tasksWithImages.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No task images to display'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => TaskImageCarousel(
+          tasksWithImages: tasksWithImages,
+          initialIndex: 0,
+        ),
+      ),
+    );
+  }
 }
+

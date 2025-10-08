@@ -182,30 +182,6 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
                 ),
               ),
             ),
-            // Add this to your AddEditTaskScreen for testing
-            FloatingActionButton(
-              mini: true,
-              onPressed: () async {
-                final imageService = ImageService();
-
-                // Test gallery permission
-                //final hasPermission = await imageService.hasStoragePermission();
-                //print('Gallery permission: $hasPermission');
-
-                // Test gallery picker
-                final imagePath = await imageService.pickImageFromGallery();
-                if (imagePath != null) {
-                  //print('Image selected: $imagePath');
-                  setState(() {
-                    _selectedImagePath = imagePath;
-                  });
-                } else {
-                  //print('No image selected');
-                }
-              },
-              child: const Icon(Icons.bug_report),
-            ),
-
             // Show selected image preview
             if (_selectedImagePath != null) ...[
               const SizedBox(height: 16),
